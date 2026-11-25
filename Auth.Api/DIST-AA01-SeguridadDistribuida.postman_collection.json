@@ -1,0 +1,901 @@
+{
+	"info": {
+		"_postman_id": "a901ff80-2a34-4b47-8149-bc91181f7281",
+		"name": "DIST-AA01 - Sistema Distribuido de Seguridad y Autenticación",
+		"description": "Colección completa de pruebas para la actividad AA01 con los 16 casos de prueba obligatorios.\nAPIs:\n- Auth.Api: https://localhost:7105\n- Usuarios.Api: https://localhost:7110\n- Notificaciones.Api: https://localhost:7023",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "auth_url",
+			"value": "https://localhost:7105",
+			"type": "string"
+		},
+		{
+			"key": "usuarios_url",
+			"value": "https://localhost:7110",
+			"type": "string"
+		},
+		{
+			"key": "notificaciones_url",
+			"value": "https://localhost:7023",
+			"type": "string"
+		},
+		{
+			"key": "cliente_email",
+			"value": "cliente.prueba@ejemplo.com",
+			"type": "string"
+		},
+		{
+			"key": "cliente_password",
+			"value": "Cliente#2026Password!",
+			"type": "string"
+		},
+		{
+			"key": "admin_email",
+			"value": "admin@sistema.local",
+			"type": "string"
+		},
+		{
+			"key": "admin_password",
+			"value": "Admin#2026Password!",
+			"type": "string"
+		},
+		{
+			"key": "cliente_jwt",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "admin_jwt",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "cliente_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "admin_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "reset_token",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "01 - Registrar Cliente Válido (Caso 1)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code es 201 Created\", function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"var jsonData = pm.response.json();",
+							"pm.test(\"Rol predeterminado es Cliente\", function () {",
+							"    pm.expect(jsonData.rol).to.eql(\"Cliente\");",
+							"});",
+							"if (jsonData.usuarioId) {",
+							"    pm.collectionVariables.set(\"cliente_id\", jsonData.usuarioId);",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"nombres\": \"Juan Perez Cliente\",\n  \"correo\": \"{{cliente_email}}\",\n  \"password\": \"{{cliente_password}}\",\n  \"confirmarPassword\": \"{{cliente_password}}\",\n  \"telefono\": \"0987654321\",\n  \"ciudad\": \"Quito\"\n}"
+				},
+				"url": {
+					"raw": "{{auth_url}}/api/Auth/registro",
+					"host": [
+						"{{auth_url}}"
+					],
+					"path": [
+						"api",
+						"Auth",
+						"registro"
+					]
+				}
+			}
+		},
+		{
+			"name": "02 - Registro con Correo Duplicado (Caso 2)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Rechazo por correo duplicado (409 Conflict)\", function () {",
+							"    pm.response.to.have.status(409);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"nombres\": \"Otro Nombre\",\n  \"correo\": \"{{cliente_email}}\",\n  \"password\": \"{{cliente_password}}\",\n  \"confirmarPassword\": \"{{cliente_password}}\"\n}"
+				},
+				"url": {
+					"raw": "{{auth_url}}/api/Auth/registro",
+					"host": [
+						"{{auth_url}}"
+					],
+					"path": [
+						"api",
+						"Auth",
+						"registro"
+					]
+				}
+			}
+		},
+		{
+			"name": "03a - Login Local Erróneo (Caso 3)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Rechazo genérico de credenciales (401 Unauthorized)\", function () {",
+							"    pm.response.to.have.status(401);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"correo\": \"{{cliente_email}}\",\n  \"password\": \"ClaveTotalmenteIncorrecta123!\"\n}"
+				},
+				"url": {
+					"raw": "{{auth_url}}/api/Auth/login",
+					"host": [
+						"{{auth_url}}"
+					],
+					"path": [
+						"api",
+						"Auth",
+						"login"
+					]
+				}
+			}
+		},
+		{
+			"name": "03b - Login Local Correcto (Caso 3)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Login correcto retorna 200 y JWT\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"var data = pm.response.json();",
+							"pm.test(\"Retorna token JWT válido\", function () {",
+							"    pm.expect(data.token).to.be.a('string');",
+							"});",
+							"pm.collectionVariables.set(\"cliente_jwt\", data.token);",
+							"pm.collectionVariables.set(\"cliente_id\", data.usuarioId);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"correo\": \"{{cliente_email}}\",\n  \"password\": \"{{cliente_password}}\"\n}"
+				},
+				"url": {
+					"raw": "{{auth_url}}/api/Auth/login",
+					"host": [
+						"{{auth_url}}"
+					],
+					"path": [
+						"api",
+						"Auth",
+						"login"
+					]
+				}
+			}
+		},
+		{
+			"name": "03c - Login como Administrador",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Admin login retorna 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"var data = pm.response.json();",
+							"pm.collectionVariables.set(\"admin_jwt\", data.token);",
+							"pm.collectionVariables.set(\"admin_id\", data.usuarioId);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"correo\": \"{{admin_email}}\",\n  \"password\": \"{{admin_password}}\"\n}"
+				},
+				"url": {
+					"raw": "{{auth_url}}/api/Auth/login",
+					"host": [
+						"{{auth_url}}"
+					],
+					"path": [
+						"api",
+						"Auth",
+						"login"
+					]
+				}
+			}
+		},
+		{
+			"name": "04 - Consultar Perfil Sin Token (Caso 4)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Recurso protegido retorna 401 Unauthorized\", function () {",
+							"    pm.response.to.have.status(401);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{usuarios_url}}/api/Perfiles/mi-perfil",
+					"host": [
+						"{{usuarios_url}}"
+					],
+					"path": [
+						"api",
+						"Perfiles",
+						"mi-perfil"
+					]
+				}
+			}
+		},
+		{
+			"name": "05a - Cliente Consulta su Propio Perfil (Autorizado)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Consulta de perfil propio retorna 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{cliente_jwt}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{usuarios_url}}/api/Perfiles/mi-perfil",
+					"host": [
+						"{{usuarios_url}}"
+					],
+					"path": [
+						"api",
+						"Perfiles",
+						"mi-perfil"
+					]
+				}
+			}
+		},
+		{
+			"name": "05b - Cliente Consulta Perfil Ajeno (Caso 5)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Acceso denegado a perfil ajeno retorna 403 Forbidden\", function () {",
+							"    pm.response.to.have.status(403);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{cliente_jwt}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{usuarios_url}}/api/Perfiles/{{admin_id}}",
+					"host": [
+						"{{usuarios_url}}"
+					],
+					"path": [
+						"api",
+						"Perfiles",
+						"{{admin_id}}"
+					]
+				}
+			}
+		},
+		{
+			"name": "05c - Cliente Intenta Ruta Administrativa (Caso 5)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Cliente en ruta de Admin retorna 403 Forbidden\", function () {",
+							"    pm.response.to.have.status(403);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{cliente_jwt}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{auth_url}}/api/Auth/usuarios",
+					"host": [
+						"{{auth_url}}"
+					],
+					"path": [
+						"api",
+						"Auth",
+						"usuarios"
+					]
+				}
+			}
+		},
+		{
+			"name": "06a - Admin Lista Usuarios (Caso 6)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Admin lista usuarios correctamente (200 OK)\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{admin_jwt}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{auth_url}}/api/Auth/usuarios",
+					"host": [
+						"{{auth_url}}"
+					],
+					"path": [
+						"api",
+						"Auth",
+						"usuarios"
+					]
+				}
+			}
+		},
+		{
+			"name": "06b - Admin Modifica Estado de Cuenta (Caso 6)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Estado de cuenta actualizado correctamente (200 OK)\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{admin_jwt}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"estaActivo\": true\n}"
+				},
+				"url": {
+					"raw": "{{auth_url}}/api/Auth/usuarios/{{cliente_id}}/estado",
+					"host": [
+						"{{auth_url}}"
+					],
+					"path": [
+						"api",
+						"Auth",
+						"usuarios",
+						"{{cliente_id}}",
+						"estado"
+					]
+				}
+			}
+		},
+		{
+			"name": "06c - Admin Protege Último Admin (Caso 6)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Protección del último admin activo retorna 400 Bad Request\", function () {",
+							"    pm.response.to.have.status(400);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{admin_jwt}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"estaActivo\": false\n}"
+				},
+				"url": {
+					"raw": "{{auth_url}}/api/Auth/usuarios/{{admin_id}}/estado",
+					"host": [
+						"{{auth_url}}"
+					],
+					"path": [
+						"api",
+						"Auth",
+						"usuarios",
+						"{{admin_id}}",
+						"estado"
+					]
+				}
+			}
+		},
+		{
+			"name": "07 - Rechazar Token Google Inválido (Caso 8)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Token Google inválido retorna 401 Unauthorized\", function () {",
+							"    pm.response.to.have.status(401);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"idToken\": \"token_falso_invalido.header.payload.signature\"\n}"
+				},
+				"url": {
+					"raw": "{{auth_url}}/api/Auth/google",
+					"host": [
+						"{{auth_url}}"
+					],
+					"path": [
+						"api",
+						"Auth",
+						"google"
+					]
+				}
+			}
+		},
+		{
+			"name": "08 - Recuperación por Correo Real (Caso 9)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Solicitud retorna 200 con respuesta genérica segura\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"var data = pm.response.json();",
+							"pm.test(\"No filtra existencia de correo ni token\", function () {",
+							"    pm.expect(data.mensaje).to.include(\"Si el correo está registrado\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"correo\": \"{{cliente_email}}\"\n}"
+				},
+				"url": {
+					"raw": "{{auth_url}}/api/Auth/recuperar-password",
+					"host": [
+						"{{auth_url}}"
+					],
+					"path": [
+						"api",
+						"Auth",
+						"recuperar-password"
+					]
+				}
+			}
+		},
+		{
+			"name": "09 - Rechazar Token Vencido o Alterado (Caso 11)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Token alterado o inválido es rechazado (400 Bad Request)\", function () {",
+							"    pm.response.to.have.status(400);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"correo\": \"{{cliente_email}}\",\n  \"token\": \"token_completamente_alterado_o_vencido\",\n  \"nuevaPassword\": \"NuevaClave#2026!\",\n  \"confirmarPassword\": \"NuevaClave#2026!\"\n}"
+				},
+				"url": {
+					"raw": "{{auth_url}}/api/Auth/restablecer-password",
+					"host": [
+						"{{auth_url}}"
+					],
+					"path": [
+						"api",
+						"Auth",
+						"restablecer-password"
+					]
+				}
+			}
+		},
+		{
+			"name": "10 - Simular Latencia Superior al Timeout (Caso 14)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Timeout genera 503 Service Unavailable y ejecuta rollback\", function () {",
+							"    pm.response.to.have.status(503);",
+							"});",
+							"var data = pm.response.json();",
+							"pm.test(\"Mensaje explica timeout sin exponer stacktrace interno\", function () {",
+							"    pm.expect(data.mensaje).to.include(\"tiempo de espera\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"nombres\": \"Usuario Timeout Prueba\",\n  \"correo\": \"usuario.timeout@ejemplo.com\",\n  \"password\": \"Prueba#Timeout2026!\",\n  \"confirmarPassword\": \"Prueba#Timeout2026!\"\n}"
+				},
+				"url": {
+					"raw": "{{auth_url}}/api/Auth/registro?simularTimeout=true",
+					"host": [
+						"{{auth_url}}"
+					],
+					"path": [
+						"api",
+						"Auth",
+						"registro"
+					],
+					"query": [
+						{
+							"key": "simularTimeout",
+							"value": "true"
+						}
+					]
+				}
+			}
+		},
+		{
+			"name": "11 - Notificaciones.Api Sin Autorización (Caso 15)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Consumo sin token retorna 401 Unauthorized\", function () {",
+							"    pm.response.to.have.status(401);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"destinatario\": \"test@ejemplo.com\",\n  \"asunto\": \"Intento no autorizado\",\n  \"tipoNotificacion\": \"Prueba\",\n  \"cuerpoTexto\": \"Prueba no autorizada\"\n}"
+				},
+				"url": {
+					"raw": "{{notificaciones_url}}/api/Notificaciones/enviar",
+					"host": [
+						"{{notificaciones_url}}"
+					],
+					"path": [
+						"api",
+						"Notificaciones",
+						"enviar"
+					]
+				}
+			}
+		},
+		{
+			"name": "12 - Notificaciones.Api Con Token de Cliente (Caso 15)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Cliente no tiene permiso de servicio interno (403 Forbidden)\", function () {",
+							"    pm.response.to.have.status(403);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{cliente_jwt}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"destinatario\": \"test@ejemplo.com\",\n  \"asunto\": \"Intento no autorizado\",\n  \"tipoNotificacion\": \"Prueba\",\n  \"cuerpoTexto\": \"Prueba cliente\"\n}"
+				},
+				"url": {
+					"raw": "{{notificaciones_url}}/api/Notificaciones/enviar",
+					"host": [
+						"{{notificaciones_url}}"
+					],
+					"path": [
+						"api",
+						"Notificaciones",
+						"enviar"
+					]
+				}
+			}
+		},
+		{
+			"name": "13 - Cambiar Contraseña con Actual Incorrecta (Caso 16)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Contraseña actual errónea retorna 400 Bad Request\", function () {",
+							"    pm.response.to.have.status(400);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{cliente_jwt}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"passwordActual\": \"ClaveIncorrecta#1234\",\n  \"nuevaPassword\": \"NuevaClave#2026!\",\n  \"confirmarPassword\": \"NuevaClave#2026!\"\n}"
+				},
+				"url": {
+					"raw": "{{auth_url}}/api/Auth/cambiar-password",
+					"host": [
+						"{{auth_url}}"
+					],
+					"path": [
+						"api",
+						"Auth",
+						"cambiar-password"
+					]
+				}
+			}
+		}
+	]
+}

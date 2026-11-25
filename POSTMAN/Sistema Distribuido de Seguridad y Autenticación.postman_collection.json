@@ -1,0 +1,986 @@
+{
+  "info": {
+    "_postman_id": "992c74c2-91cd-4bd0-8d4c-71b8b2b8a0e9",
+    "name": "DIST-AA01 - Sistema Distribuido de Seguridad y Autenticación",
+    "description": "Colección completa de pruebas para la actividad AA01 con los 16 casos de prueba obligatorios.\nAPIs:\n- Auth.Api: https://localhost:7105\n- Usuarios.Api: https://localhost:7110\n- Notificaciones.Api: https://localhost:7023",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "57528375",
+    "_collection_link": "https://go.postman.co/collection/57528375-992c74c2-91cd-4bd0-8d4c-71b8b2b8a0e9?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "01 - Registrar Cliente Válido (Caso 1)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status code es 201 Created\", function () {\n    pm.response.to.have.status(201);\n});\nvar jsonData = pm.response.json();\npm.test(\"Rol predeterminado es Cliente\", function () {\n    pm.expect(jsonData.rol).to.eql(\"Cliente\");\n});\nif (jsonData.usuarioId) {\n    pm.collectionVariables.set(\"cliente_id\", jsonData.usuarioId);\n}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombres\": \"Emili\",\n  \"correo\": \"emily07morocho11@gmail.com\",\n  \"password\": \"Dayana1234*\",\n  \"confirmarPassword\": \"Dayana1234*\",\n  \"telefono\": \"0987654321\",\n  \"ciudad\": \"Quito\"\n}",
+          "options": {
+            "raw": {
+              "language": "text"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://localhost:7105/api/Auth/registro",
+          "protocol": "https",
+          "host": [
+            "localhost"
+          ],
+          "port": "7105",
+          "path": [
+            "api",
+            "Auth",
+            "registro"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "02 - Registro con Correo Duplicado (Caso 2)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Rechazo por correo duplicado (409 Conflict)\", function () {\n    pm.response.to.have.status(409);\n});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombres\": \"Emili\",\n  \"correo\": \"emily07morocho11@gmail.com\",\n  \"password\": \"Dayana1234*\",\n  \"confirmarPassword\": \"Dayana1234*\"\n}",
+          "options": {
+            "raw": {
+              "language": "text"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://localhost:7105/api/Auth/registro",
+          "protocol": "https",
+          "host": [
+            "localhost"
+          ],
+          "port": "7105",
+          "path": [
+            "api",
+            "Auth",
+            "registro"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "03a - Login Local Erróneo (Caso 3)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Rechazo genérico de credenciales (401 Unauthorized)\", function () {\n    pm.response.to.have.status(401);\n});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"correo\": \"emily07morocho11@gmail.com\",\n  \"password\": \"ClaveIncorrecta123!\"\n}",
+          "options": {
+            "raw": {
+              "language": "text"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://localhost:7105/api/Auth/login",
+          "protocol": "https",
+          "host": [
+            "localhost"
+          ],
+          "port": "7105",
+          "path": [
+            "api",
+            "Auth",
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "03b - Login Local Correcto (Caso 3)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Login correcto retorna 200 y JWT\", function () {\n    pm.response.to.have.status(200);\n});\nvar data = pm.response.json();\npm.test(\"Retorna token JWT válido\", function () {\n    pm.expect(data.token).to.be.a('string');\n});\npm.collectionVariables.set(\"cliente_jwt\", data.token);\npm.collectionVariables.set(\"cliente_id\", data.usuarioId);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"correo\": \"emily07morocho11@gmail.com\",\n  \"password\": \"Dayana1234*\"\n}",
+          "options": {
+            "raw": {
+              "language": "text"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://localhost:7105/api/Auth/login",
+          "protocol": "https",
+          "host": [
+            "localhost"
+          ],
+          "port": "7105",
+          "path": [
+            "api",
+            "Auth",
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "03c - Login como Administrador",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Admin login retorna 200\", function () {\n    pm.response.to.have.status(200);\n});\nvar data = pm.response.json();\npm.collectionVariables.set(\"admin_jwt\", data.token);\npm.collectionVariables.set(\"admin_id\", data.usuarioId);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"correo\": \"admin@sistema.local\",\n  \"password\": \"Admin#2026Password!\"\n}",
+          "options": {
+            "raw": {
+              "language": "text"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://localhost:7105/api/Auth/login",
+          "protocol": "https",
+          "host": [
+            "localhost"
+          ],
+          "port": "7105",
+          "path": [
+            "api",
+            "Auth",
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "04 - Consultar Perfil Sin Token (Caso 4)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Recurso protegido retorna 401 Unauthorized\", function () {\n    pm.response.to.have.status(401);\n});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://localhost:7110/api/Perfiles/mi-perfil",
+          "protocol": "https",
+          "host": [
+            "localhost"
+          ],
+          "port": "7110",
+          "path": [
+            "api",
+            "Perfiles",
+            "mi-perfil"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "05a - Cliente Consulta su Propio Perfil (Autorizado)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Consulta de perfil propio retorna 200\", function () {\n    pm.response.to.have.status(200);\n});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkYWU1OGEwZC1jZGYwLTQzMGQtYmE4OC1mZDJlOWIzZTBkMzEiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6ImRhZTU4YTBkLWNkZjAtNDMwZC1iYTg4LWZkMmU5YjNlMGQzMSIsImVtYWlsIjoiZW1pbHkwN21vcm9jaG8xMUBnbWFpbC5jb20iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJlbWlseTA3bW9yb2NobzExQGdtYWlsLmNvbSIsIm5vbWJyZXMiOiJFbWlsaSIsImp0aSI6IjkwMDEyZDg5LWE0YTQtNGRmNS1hYmI3LTNjZmI5Mzg0ODk2NyIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IkNsaWVudGUiLCJuYmYiOjE3OTU1Njg3NjcsImV4cCI6MTc5NTU3MjM2NywiaXNzIjoiQXV0aC5BcGkiLCJhdWQiOiJTaXN0ZW1hQ29tZXJjaWFsLkFwaSJ9.7rGvg86LG2RThz0PyYHA4twjrL5lxwyHRfjWnyhUPOA",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://localhost:7110/api/Perfiles/mi-perfil",
+          "protocol": "https",
+          "host": [
+            "localhost"
+          ],
+          "port": "7110",
+          "path": [
+            "api",
+            "Perfiles",
+            "mi-perfil"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "05b - Cliente Consulta Perfil Ajeno (Caso 5)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Acceso denegado a perfil ajeno retorna 403 Forbidden\", function () {\n    pm.response.to.have.status(403);\n});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkYWU1OGEwZC1jZGYwLTQzMGQtYmE4OC1mZDJlOWIzZTBkMzEiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6ImRhZTU4YTBkLWNkZjAtNDMwZC1iYTg4LWZkMmU5YjNlMGQzMSIsImVtYWlsIjoiZW1pbHkwN21vcm9jaG8xMUBnbWFpbC5jb20iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJlbWlseTA3bW9yb2NobzExQGdtYWlsLmNvbSIsIm5vbWJyZXMiOiJFbWlsaSIsImp0aSI6IjkwMDEyZDg5LWE0YTQtNGRmNS1hYmI3LTNjZmI5Mzg0ODk2NyIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IkNsaWVudGUiLCJuYmYiOjE3OTU1Njg3NjcsImV4cCI6MTc5NTU3MjM2NywiaXNzIjoiQXV0aC5BcGkiLCJhdWQiOiJTaXN0ZW1hQ29tZXJjaWFsLkFwaSJ9.7rGvg86LG2RThz0PyYHA4twjrL5lxwyHRfjWnyhUPOA",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://localhost:7110/api/Perfiles/f7d5f5ec-19e0-47b3-9b51-96c12e8e087c",
+          "protocol": "https",
+          "host": [
+            "localhost"
+          ],
+          "port": "7110",
+          "path": [
+            "api",
+            "Perfiles",
+            "f7d5f5ec-19e0-47b3-9b51-96c12e8e087c"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "05c - Cliente Intenta Ruta Administrativa (Caso 5)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Cliente en ruta de Admin retorna 403 Forbidden\", function () {\n    pm.response.to.have.status(403);\n});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkYWU1OGEwZC1jZGYwLTQzMGQtYmE4OC1mZDJlOWIzZTBkMzEiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6ImRhZTU4YTBkLWNkZjAtNDMwZC1iYTg4LWZkMmU5YjNlMGQzMSIsImVtYWlsIjoiZW1pbHkwN21vcm9jaG8xMUBnbWFpbC5jb20iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJlbWlseTA3bW9yb2NobzExQGdtYWlsLmNvbSIsIm5vbWJyZXMiOiJFbWlsaSIsImp0aSI6IjkwMDEyZDg5LWE0YTQtNGRmNS1hYmI3LTNjZmI5Mzg0ODk2NyIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IkNsaWVudGUiLCJuYmYiOjE3OTU1Njg3NjcsImV4cCI6MTc5NTU3MjM2NywiaXNzIjoiQXV0aC5BcGkiLCJhdWQiOiJTaXN0ZW1hQ29tZXJjaWFsLkFwaSJ9.7rGvg86LG2RThz0PyYHA4twjrL5lxwyHRfjWnyhUPOA",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://localhost:7105/api/Auth/usuarios",
+          "protocol": "https",
+          "host": [
+            "localhost"
+          ],
+          "port": "7105",
+          "path": [
+            "api",
+            "Auth",
+            "usuarios"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "06a - Admin Lista Usuarios (Caso 6)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Admin lista usuarios correctamente (200 OK)\", function () {\n    pm.response.to.have.status(200);\n});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmN2Q1ZjVlYy0xOWUwLTQ3YjMtOWI1MS05NmMxMmU4ZTA4N2MiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6ImY3ZDVmNWVjLTE5ZTAtNDdiMy05YjUxLTk2YzEyZThlMDg3YyIsImVtYWlsIjoiYWRtaW5Ac2lzdGVtYS5sb2NhbCIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL2VtYWlsYWRkcmVzcyI6ImFkbWluQHNpc3RlbWEubG9jYWwiLCJub21icmVzIjoiQWRtaW5pc3RyYWRvciBHZW5lcmFsIiwianRpIjoiNzBlZDM2MTYtOWJiZC00YmQ0LTg4ZjQtOWJjNTRkMDEwMjYxIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoiQWRtaW5pc3RyYWRvciIsIm5iZiI6MTc5NTU2ODgyMSwiZXhwIjoxNzk1NTcyNDIxLCJpc3MiOiJBdXRoLkFwaSIsImF1ZCI6IlNpc3RlbWFDb21lcmNpYWwuQXBpIn0.-kmlkFp7ZLnkzAmcan_t-mTJjhbFwEYxHbr1ta5DrGo",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://localhost:7105/api/Auth/usuarios",
+          "protocol": "https",
+          "host": [
+            "localhost"
+          ],
+          "port": "7105",
+          "path": [
+            "api",
+            "Auth",
+            "usuarios"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "06b - Admin Modifica Estado de Cuenta (Caso 6)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Estado de cuenta actualizado correctamente (200 OK)\", function () {\n    pm.response.to.have.status(200);\n});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmN2Q1ZjVlYy0xOWUwLTQ3YjMtOWI1MS05NmMxMmU4ZTA4N2MiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6ImY3ZDVmNWVjLTE5ZTAtNDdiMy05YjUxLTk2YzEyZThlMDg3YyIsImVtYWlsIjoiYWRtaW5Ac2lzdGVtYS5sb2NhbCIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL2VtYWlsYWRkcmVzcyI6ImFkbWluQHNpc3RlbWEubG9jYWwiLCJub21icmVzIjoiQWRtaW5pc3RyYWRvciBHZW5lcmFsIiwianRpIjoiNzBlZDM2MTYtOWJiZC00YmQ0LTg4ZjQtOWJjNTRkMDEwMjYxIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoiQWRtaW5pc3RyYWRvciIsIm5iZiI6MTc5NTU2ODgyMSwiZXhwIjoxNzk1NTcyNDIxLCJpc3MiOiJBdXRoLkFwaSIsImF1ZCI6IlNpc3RlbWFDb21lcmNpYWwuQXBpIn0.-kmlkFp7ZLnkzAmcan_t-mTJjhbFwEYxHbr1ta5DrGo",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"estaActivo\": true\n}",
+          "options": {
+            "raw": {
+              "language": "text"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://localhost:7105/api/Auth/usuarios/dae58a0d-cdf0-430d-ba88-fd2e9b3e0d31/estado",
+          "protocol": "https",
+          "host": [
+            "localhost"
+          ],
+          "port": "7105",
+          "path": [
+            "api",
+            "Auth",
+            "usuarios",
+            "dae58a0d-cdf0-430d-ba88-fd2e9b3e0d31",
+            "estado"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "06c - Admin Protege Último Admin (Caso 6)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Protección del último admin activo retorna 400 Bad Request\", function () {\n    pm.response.to.have.status(400);\n});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmN2Q1ZjVlYy0xOWUwLTQ3YjMtOWI1MS05NmMxMmU4ZTA4N2MiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6ImY3ZDVmNWVjLTE5ZTAtNDdiMy05YjUxLTk2YzEyZThlMDg3YyIsImVtYWlsIjoiYWRtaW5Ac2lzdGVtYS5sb2NhbCIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL2VtYWlsYWRkcmVzcyI6ImFkbWluQHNpc3RlbWEubG9jYWwiLCJub21icmVzIjoiQWRtaW5pc3RyYWRvciBHZW5lcmFsIiwianRpIjoiNzBlZDM2MTYtOWJiZC00YmQ0LTg4ZjQtOWJjNTRkMDEwMjYxIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoiQWRtaW5pc3RyYWRvciIsIm5iZiI6MTc5NTU2ODgyMSwiZXhwIjoxNzk1NTcyNDIxLCJpc3MiOiJBdXRoLkFwaSIsImF1ZCI6IlNpc3RlbWFDb21lcmNpYWwuQXBpIn0.-kmlkFp7ZLnkzAmcan_t-mTJjhbFwEYxHbr1ta5DrGo",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"estaActivo\": false\n}",
+          "options": {
+            "raw": {
+              "language": "text"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://localhost:7105/api/Auth/usuarios/f7d5f5ec-19e0-47b3-9b51-96c12e8e087c/estado",
+          "protocol": "https",
+          "host": [
+            "localhost"
+          ],
+          "port": "7105",
+          "path": [
+            "api",
+            "Auth",
+            "usuarios",
+            "f7d5f5ec-19e0-47b3-9b51-96c12e8e087c",
+            "estado"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "07 - Rechazar Token Google Inválido (Caso 8)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Token Google inválido retorna 401 Unauthorized\", function () {\n    pm.response.to.have.status(401);\n});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"idToken\": \"token_falso_invalido.header.payload.signature\"\n}",
+          "options": {
+            "raw": {
+              "language": "text"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://localhost:7105/api/Auth/google",
+          "protocol": "https",
+          "host": [
+            "localhost"
+          ],
+          "port": "7105",
+          "path": [
+            "api",
+            "Auth",
+            "google"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "08 - Recuperación por Correo Real (Caso 9)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Solicitud retorna 200 con respuesta genérica segura\", function () {\n    pm.response.to.have.status(200);\n});\nvar data = pm.response.json();\npm.test(\"No filtra existencia de correo ni token\", function () {\n    pm.expect(data.mensaje).to.include(\"Si el correo está registrado\");\n});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"correo\": \"emily07morocho11@gmail.com\"\n}",
+          "options": {
+            "raw": {
+              "language": "text"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://localhost:7105/api/Auth/recuperar-password",
+          "protocol": "https",
+          "host": [
+            "localhost"
+          ],
+          "port": "7105",
+          "path": [
+            "api",
+            "Auth",
+            "recuperar-password"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "09 - Rechazar Token Vencido o Alterado (Caso 11)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Token alterado o inválido es rechazado (400 Bad Request)\", function () {\n    pm.response.to.have.status(400);\n});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"correo\": \"emily07morocho11@gmail.com\",\n  \"token\": \"token_inventado_o_ya_usado\",\n  \"nuevaPassword\": \"NuevaClave#2026!\",\n  \"confirmarPassword\": \"NuevaClave#2026!\"\n}",
+          "options": {
+            "raw": {
+              "language": "text"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://localhost:7105/api/Auth/restablecer-password",
+          "protocol": "https",
+          "host": [
+            "localhost"
+          ],
+          "port": "7105",
+          "path": [
+            "api",
+            "Auth",
+            "restablecer-password"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Detener Usuarios.Api y Registrar Cuenta (Tolerancia y Rollback)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"nombres\": \"Prueba Caida\",\r\n  \"correo\": \"prueba.caida@ejemplo.com\",\r\n  \"password\": \"Password#2026!\",\r\n  \"confirmarPassword\": \"Password#2026!\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://localhost:7105/api/Auth/registro",
+          "protocol": "https",
+          "host": [
+            "localhost"
+          ],
+          "port": "7105",
+          "path": [
+            "api",
+            "Auth",
+            "registro"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "10 - Simular Latencia Superior al Timeout (Caso 14)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Timeout genera 503 Service Unavailable y ejecuta rollback\", function () {\n    pm.response.to.have.status(503);\n});\nvar data = pm.response.json();\npm.test(\"Mensaje explica timeout sin exponer stacktrace interno\", function () {\n    pm.expect(data.mensaje).to.include(\"tiempo de espera\");\n});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombres\": \"Usuario Timeout\",\n  \"correo\": \"usuario.timeout@ejemplo.com\",\n  \"password\": \"Password#2026!\",\n  \"confirmarPassword\": \"Password#2026!\"\n}",
+          "options": {
+            "raw": {
+              "language": "text"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://localhost:7105/api/Auth/registro?simularTimeout=true",
+          "protocol": "https",
+          "host": [
+            "localhost"
+          ],
+          "port": "7105",
+          "path": [
+            "api",
+            "Auth",
+            "registro"
+          ],
+          "query": [
+            {
+              "key": "simularTimeout",
+              "value": "true"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "11 - Notificaciones.Api Sin Autorización (Caso 15)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Consumo sin token retorna 401 Unauthorized\", function () {\n    pm.response.to.have.status(401);\n});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"destinatario\": \"test@ejemplo.com\",\n  \"asunto\": \"Intento no autorizado\",\n  \"tipoNotificacion\": \"Prueba\",\n  \"cuerpoTexto\": \"Prueba no autorizada\"\n}",
+          "options": {
+            "raw": {
+              "language": "text"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://localhost:7023/api/Notificaciones/enviar",
+          "protocol": "https",
+          "host": [
+            "localhost"
+          ],
+          "port": "7023",
+          "path": [
+            "api",
+            "Notificaciones",
+            "enviar"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "12 - Notificaciones.Api Con Token de Cliente (Caso 15)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Cliente no tiene permiso de servicio interno (403 Forbidden)\", function () {",
+              "    pm.response.to.have.status(403);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{cliente_jwt}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"destinatario\": \"test@ejemplo.com\",\n  \"asunto\": \"Intento no autorizado\",\n  \"tipoNotificacion\": \"Prueba\",\n  \"cuerpoTexto\": \"Prueba cliente\"\n}"
+        },
+        "url": {
+          "raw": "{{notificaciones_url}}/api/Notificaciones/enviar",
+          "host": [
+            "{{notificaciones_url}}"
+          ],
+          "path": [
+            "api",
+            "Notificaciones",
+            "enviar"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "13 - Cambiar Contraseña con Actual Incorrecta (Caso 16)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Contraseña actual errónea retorna 400 Bad Request\", function () {\n    pm.response.to.have.status(400);\n});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{cliente_jwt}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"passwordActual\": \"ClaveMala#9999\",\n  \"nuevaPassword\": \"NuevaPassword#2026!\",\n  \"confirmarPassword\": \"NuevaPassword#2026!\"\n}",
+          "options": {
+            "raw": {
+              "language": "text"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://localhost:7105/api/Auth/cambiar-password",
+          "protocol": "https",
+          "host": [
+            "localhost"
+          ],
+          "port": "7105",
+          "path": [
+            "api",
+            "Auth",
+            "cambiar-password"
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "auth_url",
+      "value": "https://localhost:7105"
+    },
+    {
+      "key": "usuarios_url",
+      "value": "https://localhost:7110"
+    },
+    {
+      "key": "notificaciones_url",
+      "value": "https://localhost:7023"
+    },
+    {
+      "key": "cliente_email",
+      "value": "cliente.prueba@ejemplo.com"
+    },
+    {
+      "key": "cliente_password",
+      "value": "Cliente#2026Password!"
+    },
+    {
+      "key": "admin_email",
+      "value": "admin@sistema.local"
+    },
+    {
+      "key": "admin_password",
+      "value": "Admin#2026Password!"
+    },
+    {
+      "key": "cliente_jwt",
+      "value": ""
+    },
+    {
+      "key": "admin_jwt",
+      "value": ""
+    },
+    {
+      "key": "cliente_id",
+      "value": ""
+    },
+    {
+      "key": "admin_id",
+      "value": ""
+    },
+    {
+      "key": "reset_token",
+      "value": ""
+    }
+  ]
+}

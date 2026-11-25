@@ -1,0 +1,29 @@
+## Ignorar carpetas de compilación y binarios de .NET (Requisito obligatorio)
+[Bb]in/
+[Oo]bj/
+**/[Bb]in/
+**/[Oo]bj/
+
+## Archivos y configuraciones de Visual Studio
+.vs/
+*.user
+*.userosscache
+*.suo
+*.userprefs
+*.sln.docstates
+
+## Archivos de paquetes y dependencias temporales
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+## Archivos de pruebas y reportes temporales
+TestResults/
+[Tt]est[Rr]esult*/
+
+## Archivos del sistema operativo
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AA01 - Sistema Distribuido de Autenticación y Seguridad</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 30px;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #1a73e8;
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+        p.subtitle {
+            color: #666;
+            margin-top: 0;
+            margin-bottom: 25px;
+        }
+        .card {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 25px;
+            background: #fafafa;
+        }
+        .card h2 {
+            font-size: 18px;
+            margin-top: 0;
+            color: #202124;
+        }
+        pre {
+            background: #272822;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            max-height: 250px;
+            font-size: 13px;
+        }
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-right: 6px;
+            background: #e8f0fe;
+            color: #1a73e8;
+        }
+        .status-success {
+            color: #0d904f;
+            font-weight: bold;
+        }
+        .status-error {
+            color: #d93025;
+            font-weight: bold;
+        }
+        .links a {
+            display: inline-block;
+            margin-right: 15px;
+            color: #1a73e8;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .links a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Sistema Distribuido de Autenticación y Seguridad (AA01)</h1>
+        <p class="subtitle">Módulo de Autenticación con Google (OpenID Connect) y Enlace de Recuperación</p>
+
+        <div class="card">
+            <h2>Caso de Prueba 7 y 8: Inicio de sesión con Google</h2>
+            <p>Haz clic en el botón de Google para iniciar sesión mediante OpenID Connect. El ID Token de Google será validado criptográficamente por <code>Auth.Api</code>, se creará el perfil en <code>Usuarios.Api</code> con rol <strong>Cliente</strong> y se emitirá el JWT local propio de la aplicación:</p>
+            
+            <div id="g_id_onload"
+                 data-client_id="772112776336-fhg5v8q0o5frtul3hdu8ob1sedpf4cqh.apps.googleusercontent.com"
+                 data-callback="handleCredentialResponse"
+                 data-auto_prompt="false">
+            </div>
+            <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline" data-text="sign_in_with" data-shape="rectangular" data-logo_alignment="left"></div>
+
+            <div id="resultadoGoogle" style="display:none; margin-top:20px;">
+                <p id="googleStatus"></p>
+                <strong>Respuesta de Auth.Api (JWT Propio Emitido):</strong>
+                <pre id="jwtOutput"></pre>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Acceso a Documentación y APIs</h2>
+            <div class="links">
+                <a href="/swagger" target="_blank">Swagger Auth.Api (7105)</a>
+                <a href="https://localhost:7110/swagger" target="_blank">Swagger Usuarios.Api (7110)</a>
+                <a href="https://localhost:7023/swagger" target="_blank">Swagger Notificaciones.Api (7023)</a>
+                <a href="/reset-password.html">Página de Restablecer Contraseña</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function handleCredentialResponse(response) {
+            const resultadoDiv = document.getElementById('resultadoGoogle');
+            const statusP = document.getElementById('googleStatus');
+            const output = document.getElementById('jwtOutput');
+
+            resultadoDiv.style.display = 'block';
+            statusP.textContent = 'Enviando ID Token a Auth.Api (/api/Auth/google)...';
+            statusP.className = '';
+
+            try {
+                const res = await fetch('/api/Auth/google', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ idToken: response.credential })
+                });
+
+                const data = await res.json();
+                if (res.ok) {
+                    statusP.textContent = 'Autenticación exitosa con Google. JWT propio generado:';
+                    statusP.className = 'status-success';
+                } else {
+                    statusP.textContent = 'Error en autenticación: ' + (data.mensaje || JSON.stringify(data));
+                    statusP.className = 'status-error';
+                }
+                output.textContent = JSON.stringify(data, null, 2);
+            } catch (err) {
+                statusP.textContent = 'Error de conexión con Auth.Api: ' + err.message;
+                statusP.className = 'status-error';
+                output.textContent = '';
+            }
+        }
+    </script>
+</body>
+</html>
